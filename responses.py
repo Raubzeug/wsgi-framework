@@ -12,8 +12,20 @@ class Response(BaseResponse):
     default_content_type = 'text/plain; charset=UTF-8'
 
     def __init__(self, body='', status=None, headers=None, charset='utf-8'):
-        if isinstance(body, str):
-            body = body.encode(charset)
-        iterable_body = [body]
-        super().__init__(iterable_body, status, headers)
         self.charset = charset
+        self._body = body
+        if isinstance(body, str):
+            self._body = body.encode(self.charset)
+        super().__init__([self._body], status, headers)
+
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        if isinstance(value, str):
+            self._body = [value.encode(self.charset)]
+        if isinstance(value, bytes):
+            self._body = [value]

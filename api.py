@@ -1,5 +1,5 @@
-from .requests import Request
-from .responses import Response
+from requests_wsgi import Request
+from responses import Response
 
 
 class API:
@@ -15,13 +15,12 @@ class API:
     def __call__(self, environ, start_response):
         request = Request(environ)
         response = self.handle_request(request)
-        return response(environ, start_response)
+        start_response(response.status_code, response.headers)
+        return iter(response.body)
 
     def handle_request(self, request):
         response = Response()
-
         handler = self.find_handler(request_path=request.path)
-
         if handler is not None:
             handler(request, response)
         else:

@@ -2,12 +2,19 @@ from requests_wsgi import Request
 from responses import Response
 
 
+class RoutingError(Exception):
+    def __init__(self, txt):
+        self.txt = txt
+
+
 class API:
     def __init__(self):
         self.routes = {}
 
     def route(self, path):
         def wrapper(handler):
+            if self.routes[path]:
+                raise RoutingError('{0} is already created'.format(path))
             self.routes[path] = handler
             return handler
         return wrapper
@@ -20,7 +27,7 @@ class API:
 
     def handle_request(self, request):
         response = Response()
-        handler = self.find_handler(request_path=request.path)
+        handler = self.routes.get(request.path)
         if handler is not None:
             handler(request, response)
         else:
@@ -30,9 +37,3 @@ class API:
     def default_response(self, response):
         response.status = '404'
         response.body = 'Not found'
-
-    def find_handler(self, request_path):
-        for path, handler in self.routes.items():
-            if path == request_path:
-                return handler
-

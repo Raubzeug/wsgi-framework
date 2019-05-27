@@ -13,7 +13,7 @@ class API:
 
     def route(self, path):
         def wrapper(handler):
-            if self.routes[path]:
+            if path in self.routes:
                 raise RoutingError('{0} is already created'.format(path))
             self.routes[path] = handler
             return handler
